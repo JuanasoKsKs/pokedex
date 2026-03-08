@@ -2,18 +2,15 @@ package main
 import (
 	"fmt"
 	"os"
-	"net/http"
-	"encoding/json"
-	"io"
 )
 
-func commandExit() error {
+func commandExit(conf *config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp(conf *config) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -25,50 +22,38 @@ func commandHelp() error {
 	return nil
 }
 
-func commandMap(id int) error {
-	for ;
-	res, err := http.Get(fmt.Sprintf("https://pokeapi.co/api/v2/location/%d/", id))
+func commandMap(conf *config) error {
+	locationsResp, err := conf.myclient.ListLocations(conf.next)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
-	
-	data, err := io.ReadAll(res.Body)
+	conf.next = locationsResp.Next
+	conf.previous = locationsResp.Previous
+
+	for _, result := range locationsResp.Results {
+		println(result.Name)
+	}
+
+	return nil
+}
+
+func commandMapb(conf *config) error {
+	if conf.previous == nil {
+		fmt.Println("You're on the first page")
+		return nil
+	}
+	locationsResp, err := conf.myclient.ListLocations(conf.previous)
 	if err != nil {
 		return err
 	}
-	var location Location
-	if err := json.Unmarshal(data, &location) {
-		return err
+	conf.next = locationsResp.Next
+	conf.previous = locationsResp.Previous
+
+	for _, result := range locationsResp.Results {
+		println(result.Name)
 	}
 
-
+	return nil
 }
 
 	
-type Location struct {
-	ID     int    `json:"id"`
-	Name   string `json:"name"`
-	Region struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"region"`
-	Names []struct {
-		Name     string `json:"name"`
-		Language struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"language"`
-	} `json:"names"`
-	GameIndices []struct {
-		GameIndex  int `json:"game_index"`
-		Generation struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-		} `json:"generation"`
-	} `json:"game_indices"`
-	Areas []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"areas"`
-}
