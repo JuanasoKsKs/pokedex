@@ -1,0 +1,1 @@
+practice project to use HTTP protocol and decode JSON responses

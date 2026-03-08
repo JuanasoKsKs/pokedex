@@ -21,6 +21,9 @@ func startRepl(conf *config) {
 		commandName := words[0]
 		command, ok := getCommands()[commandName]
 		if ok {
+			if len(words) > 1 {
+				conf.argument = &words[1]
+			}
 			err := command.callback(conf)
 			if err != nil {
 				fmt.Println(err)
@@ -61,6 +64,26 @@ func getCommands() map[string]cliCommand {
 			description: "Desplay the previous 20 locations",
 			callback: commandMapb,
 		},
+		"explore":{
+			name: "explore",
+			description: "It takes the name of a location and returns the pokemos found there",
+			callback: commandExplore,
+		},
+		"catch":{
+			name: "catch",
+			description: "It takes the name of a pokemon and prints if it was able to be caught or not",
+			callback: commandCatch,
+		},
+		"inspect":{
+			name: "inspect",
+			description: "It shows you the information about the pokemon selected",
+			callback: commandInspect,
+		},
+		"pokedex":{
+			name: "pokedex",
+			description: "It shows you the pokemons in your Inventory",
+			callback: commandPokedex,
+		},
 	}
 }
 
@@ -74,4 +97,5 @@ type config struct {
 	myclient pokeapi.Client
 	next *string
 	previous *string
+	argument *string
 }
